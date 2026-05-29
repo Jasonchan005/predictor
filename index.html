@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-503ZSLGF0W"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-503ZSLGF0W');
+    function trackEvent(action, params) {
+      if (typeof gtag === 'function') gtag('event', action, params || {});
+    }
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Free AI Prediction Simulator – Crowd Scenario Forecasting | Predictor</title>
+  <meta name="description" content="Free AI-powered prediction simulator. Describe any scenario and see how thousands of virtual people react. Product launches, price changes, elections, and more. No sign-up.">
+  <meta name="keywords" content="prediction simulator, AI prediction, scenario forecasting, crowd simulation, what if analysis, monte carlo simulation">
+  <meta property="og:title" content="Free AI Prediction Simulator – Scenario Forecasting Tool">
+  <meta property="og:description" content="Describe a scenario and simulate how thousands react. Free, no sign-up.">
+  <meta property="og:url" content="https://predictor.vercel.app/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Predictor">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Free AI Prediction Simulator">
+  <meta name="twitter:description" content="Simulate crowd reactions to any scenario. Free, no sign-up.">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="canonical" href="https://predictor.vercel.app/">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif; background: #f5f3ff; color: #1e1b4b; min-height: 100vh; }
+    .container { max-width: 700px; margin: 0 auto; padding: 16px; }
+    .header { text-align: center; padding: 28px 16px; background: linear-gradient(135deg, #7c3aed, #a855f7); border-radius: 16px; margin-bottom: 16px; color: white; }
+    .header h1 { font-size: 26px; font-weight: 800; margin-bottom: 4px; }
+    .header p { font-size: 13px; opacity: 0.9; }
+    .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .card h2 { font-size: 15px; font-weight: 600; margin-bottom: 12px; color: #475569; }
+
+    /* Scenario selector */
+    .scenario-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .scenario-btn { padding: 10px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 12px; font-weight: 600; cursor: pointer; text-align: center; background: white; color: #64748b; transition: all 0.15s; }
+    .scenario-btn:hover { border-color: #7c3aed; color: #7c3aed; }
+    .scenario-btn.active { border-color: #7c3aed; background: #f5f3ff; color: #7c3aed; }
+    .scenario-btn .icon { font-size: 20px; display: block; margin-bottom: 4px; }
+
+    /* Custom input */
+    .custom-input { margin-top: 12px; }
+    .custom-input textarea { width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 13px; min-height: 70px; resize: vertical; font-family: inherit; outline: none; }
+    .custom-input textarea:focus { border-color: #7c3aed; }
+
+    /* Slider */
+    .slider-row { display: flex; gap: 12px; align-items: center; }
+    .slider-row label { font-size: 12px; font-weight: 600; color: #475569; white-space: nowrap; }
+    .slider-row input[type="range"] { flex: 1; accent-color: #7c3aed; }
+    .slider-row .val { font-size: 14px; font-weight: 700; color: #7c3aed; min-width: 40px; text-align: right; }
+
+    .btn { padding: 12px 24px; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+    .btn-primary { background: #7c3aed; color: white; width: 100%; }
+    .btn-primary:hover { background: #6d28d9; }
+    .btn-start { background: #22c55e; color: white; width: 100%; padding: 14px; font-size: 17px; }
+    .btn-start:hover { background: #16a34a; }
+    .btn-share { background: #1da1f2; color: white; width: 100%; }
+    .btn-share:hover { background: #1a8cd8; }
+    .btn-outline { background: white; border: 2px solid #e2e8f0; color: #64748b; }
+    .btn-outline:hover { border-color: #7c3aed; color: #7c3aed; }
+
+    /* Simulation */
+    .sim-status { text-align: center; padding: 40px 20px; }
+    .sim-status .big { font-size: 48px; margin-bottom: 12px; }
+    .sim-status .text { font-size: 14px; color: #64748b; }
+    .sim-progress { height: 6px; background: #e5e7eb; border-radius: 3px; margin: 16px 0; overflow: hidden; }
+    .sim-progress-fill { height: 100%; background: linear-gradient(90deg, #7c3aed, #a855f7); border-radius: 3px; transition: width 0.3s; width: 0%; }
+
+    /* Results */
+    .result-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 16px 0; }
+    .result-item { background: #f8fafc; border-radius: 8px; padding: 12px; text-align: center; }
+    .result-item .num { font-size: 28px; font-weight: 700; }
+    .result-item .num.positive { color: #22c55e; }
+    .result-item .num.negative { color: #ef4444; }
+    .result-item .num.neutral { color: #64748b; }
+    .result-item .label { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+    .chart-wrap { position: relative; height: 250px; margin: 16px 0; }
+
+    .hidden { display: none; }
+    .tagline { text-align: center; font-size: 12px; color: #94a3b8; padding: 16px; }
+    .tagline a { color: #7c3aed; text-decoration: none; }
+
+    .detail-bar { display: flex; gap: 4px; margin: 4px 0; align-items: center; }
+    .detail-bar .lbl { font-size: 11px; color: #64748b; min-width: 80px; }
+    .detail-bar .bar-wrap { flex: 1; height: 16px; background: #f1f5f9; border-radius: 4px; overflow: hidden; }
+    .detail-bar .bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
+
+    @media (max-width: 480px) {
+      .header h1 { font-size: 22px; }
+      .scenario-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🔮 Predictor</h1>
+      <p>AI-powered crowd simulation — predict any scenario</p>
+    </div>
+
+    <!-- Setup -->
+    <div id="setupScreen">
+      <div class="card">
+        <h2>Choose a scenario</h2>
+        <div class="scenario-grid" id="scenarioGrid">
+          <div class="scenario-btn active" data-scenario="product"><span class="icon">🚀</span>Product Launch</div>
+          <div class="scenario-btn" data-scenario="price"><span class="icon">💰</span>Price Change</div>
+          <div class="scenario-btn" data-scenario="crisis"><span class="icon">📢</span>PR Crisis</div>
+          <div class="scenario-btn" data-scenario="election"><span class="icon">🗳️</span>Election</div>
+          <div class="scenario-btn" data-scenario="custom" style="grid-column:1/3;"><span class="icon">✏️</span>Custom Scenario</div>
+        </div>
+        <div class="custom-input hidden" id="customInput">
+          <textarea id="customDesc" placeholder="Describe your scenario in detail... e.g. 'A new electric car is launched at $25,000. The company has strong brand reputation but faces competition from Tesla.'"></textarea>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Simulation settings</h2>
+        <div class="slider-row" style="margin-bottom:10px;">
+          <label>Population</label>
+          <input type="range" id="popSlider" min="100" max="10000" value="1000" step="100">
+          <span class="val" id="popVal">1,000</span>
+        </div>
+        <div class="slider-row">
+          <label>Optimism bias</label>
+          <input type="range" id="biasSlider" min="-50" max="50" value="0" step="5">
+          <span class="val" id="biasVal">0%</span>
+        </div>
+        <div style="font-size:11px;color:#94a3b8;margin-top:8px;">Positive = more optimistic outcomes. Negative = more pessimistic.</div>
+      </div>
+
+      <button class="btn btn-start" id="simBtn">▶ Run Simulation</button>
+    </div>
+
+    <!-- Simulating -->
+    <div id="simScreen" class="hidden">
+      <div class="card">
+        <div class="sim-status">
+          <div class="big" id="simEmoji">🔮</div>
+          <div class="text" id="simStatusText">Simulating 1,000 virtual people...</div>
+          <div class="sim-progress"><div class="sim-progress-fill" id="simProgress"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div id="resultScreen" class="hidden">
+      <div class="card">
+        <h2 id="resultTitle">Prediction Results</h2>
+        <div class="result-grid">
+          <div class="result-item"><div class="num positive" id="rPositive">0</div><div class="label">Positive</div></div>
+          <div class="result-item"><div class="num neutral" id="rNeutral">0</div><div class="label">Neutral</div></div>
+          <div class="result-item"><div class="num negative" id="rNegative">0</div><div class="label">Negative</div></div>
+        </div>
+
+        <div class="chart-wrap">
+          <canvas id="resultChart"></canvas>
+        </div>
+
+        <div id="detailsArea">
+          <h3 style="font-size:13px;color:#475569;margin-bottom:8px;">Sentiment Breakdown</h3>
+          <div id="detailBars"></div>
+        </div>
+
+        <div style="margin-top:16px;display:flex;gap:8px;flex-direction:column;">
+          <button class="btn btn-share" id="shareBtn">📤 Share Prediction</button>
+          <button class="btn btn-primary" id="rerunBtn">🔄 Run Again</button>
+          <button class="btn btn-outline" id="newBtn">⚙️ Change Scenario</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="tagline">
+      <a href="https://predictor.vercel.app/">Predictor</a> — Free prediction simulator by JCS Labs
+    </div>
+  </div>
+
+  <script>
+    // ─── Scenario Templates ────────────────────────────────
+    const SCENARIOS = {
+      product: {
+        title: 'Product Launch',
+        description: 'A new product is launching in a competitive market.',
+        factors: [
+          { name: 'Excited early adopters', weight: 0.25, baseProb: 0.8 },
+          { name: 'Cautious evaluators', weight: 0.35, baseProb: 0.5 },
+          { name: 'Skeptical wait-and-see', weight: 0.25, baseProb: 0.3 },
+          { name: 'Brand loyalists (positive)', weight: 0.15, baseProb: 0.7 },
+        ]
+      },
+      price: {
+        title: 'Price Change',
+        description: 'A company changes its pricing strategy.',
+        factors: [
+          { name: 'Price-sensitive customers', weight: 0.3, baseProb: 0.2 },
+          { name: 'Brand loyalists', weight: 0.25, baseProb: 0.6 },
+          { name: 'Competition shoppers', weight: 0.25, baseProb: 0.3 },
+          { name: 'Indifferent mass market', weight: 0.2, baseProb: 0.5 },
+        ]
+      },
+      crisis: {
+        title: 'PR Crisis',
+        description: 'A negative news story breaks about a company or individual.',
+        factors: [
+          { name: 'Outraged critics', weight: 0.2, baseProb: 0.15 },
+          { name: 'Concerned stakeholders', weight: 0.3, baseProb: 0.3 },
+          { name: 'Neutral observers', weight: 0.3, baseProb: 0.5 },
+          { name: 'Supportive defenders', weight: 0.2, baseProb: 0.6 },
+        ]
+      },
+      election: {
+        title: 'Election Prediction',
+        description: 'An election between two main candidates.',
+        factors: [
+          { name: 'Strong supporters (Candidate A)', weight: 0.3, baseProb: 0.7 },
+          { name: 'Strong supporters (Candidate B)', weight: 0.3, baseProb: 0.3 },
+          { name: 'Undecided swing voters', weight: 0.25, baseProb: 0.5 },
+          { name: 'Disillusioned non-voters', weight: 0.15, baseProb: 0.4 },
+        ]
+      },
+      custom: {
+        title: 'Custom Scenario',
+        description: 'Your custom scenario.',
+        factors: [
+          { name: 'Strong supporters', weight: 0.25, baseProb: 0.6 },
+          { name: 'Mildly positive', weight: 0.25, baseProb: 0.5 },
+          { name: 'Neutral / undecided', weight: 0.25, baseProb: 0.5 },
+          { name: 'Opponents', weight: 0.25, baseProb: 0.3 },
+        ]
+      }
+    };
+
+    let currentScenario = 'product';
+    let chartInstance = null;
+
+    // ─── UI Setup ──────────────────────────────────────────
+    document.querySelectorAll('#scenarioGrid .scenario-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#scenarioGrid .scenario-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentScenario = btn.dataset.scenario;
+        document.getElementById('customInput').style.display = currentScenario === 'custom' ? 'block' : 'none';
+      });
+    });
+
+    document.getElementById('popSlider').addEventListener('input', function() {
+      document.getElementById('popVal').textContent = parseInt(this.value).toLocaleString();
+    });
+    document.getElementById('biasSlider').addEventListener('input', function() {
+      document.getElementById('biasVal').textContent = this.value + '%';
+    });
+
+    // ─── Simulation Engine ─────────────────────────────────
+    document.getElementById('simBtn').addEventListener('click', runSimulation);
+    document.getElementById('rerunBtn').addEventListener('click', runSimulation);
+    document.getElementById('newBtn').addEventListener('click', () => {
+      document.getElementById('resultScreen').classList.add('hidden');
+      document.getElementById('setupScreen').classList.remove('hidden');
+    });
+    document.getElementById('shareBtn').addEventListener('click', shareResult);
+
+    function runSimulation() {
+      document.getElementById('setupScreen').classList.add('hidden');
+      document.getElementById('resultScreen').classList.add('hidden');
+      document.getElementById('simScreen').classList.remove('hidden');
+
+      const pop = parseInt(document.getElementById('popSlider').value);
+      const bias = parseInt(document.getElementById('biasSlider').value) / 100;
+      const scenario = SCENARIOS[currentScenario];
+      const customText = document.getElementById('customDesc').value;
+
+      document.getElementById('simEmoji').textContent = '🔮';
+      document.getElementById('simStatusText').textContent = 'Simulating ' + pop.toLocaleString() + ' virtual people...';
+      
+      trackEvent('sim_start', { tool: 'predictor', scenario: currentScenario, population: pop });
+
+      // Run simulation with slight delay for UX
+      setTimeout(() => {
+        const results = simulate(pop, bias, scenario);
+        showResults(results, scenario, pop);
+        
+        document.getElementById('simScreen').classList.add('hidden');
+        document.getElementById('resultScreen').classList.remove('hidden');
+        
+        trackEvent('sim_complete', { tool: 'predictor', scenario: currentScenario, population: pop, positive: results.positive, negative: results.negative });
+      }, 800);
+
+      // Animate progress
+      let p = 0;
+      const interval = setInterval(() => {
+        p += Math.random() * 15;
+        if (p > 95) { p = 95; clearInterval(interval); }
+        document.getElementById('simProgress').style.width = p + '%';
+      }, 100);
+      setTimeout(() => { document.getElementById('simProgress').style.width = '100%'; }, 700);
+    }
+
+    function simulate(population, bias, scenario) {
+      let positive = 0, neutral = 0, negative = 0;
+      const detailResults = [];
+
+      for (const factor of scenario.factors) {
+        let factorPos = 0, factorNeg = 0, factorNeu = 0;
+        const count = Math.round(population * factor.weight);
+
+        for (let i = 0; i < count; i++) {
+          // Base probability adjusted by bias and random noise
+          const adjustedProb = Math.max(0.05, Math.min(0.95, factor.baseProb + bias + (Math.random() - 0.5) * 0.3));
+          const roll = Math.random();
+          
+          if (roll < adjustedProb) {
+            factorPos++;
+            positive++;
+          } else if (roll < adjustedProb + (1 - adjustedProb) * 0.4) {
+            factorNeu++;
+            neutral++;
+          } else {
+            factorNeg++;
+            negative++;
+          }
+        }
+
+        detailResults.push({
+          name: factor.name,
+          positive: factorPos,
+          neutral: factorNeu,
+          negative: factorNeg,
+          total: count
+        });
+      }
+
+      // Remaining population (due to rounding)
+      const remaining = population - positive - neutral - negative;
+      if (remaining > 0) {
+        neutral += remaining;
+        if (detailResults.length > 0) detailResults[detailResults.length - 1].neutral += remaining;
+      }
+
+      return { positive, neutral, negative, total: population, details: detailResults };
+    }
+
+    function showResults(results, scenario, pop) {
+      const pct = (v) => Math.round((v / results.total) * 100);
+
+      document.getElementById('resultTitle').textContent = scenario.title + ' — Results';
+      document.getElementById('rPositive').textContent = pct(results.positive) + '%';
+      document.getElementById('rNeutral').textContent = pct(results.neutral) + '%';
+      document.getElementById('rNegative').textContent = pct(results.negative) + '%';
+
+      // Chart
+      if (chartInstance) chartInstance.destroy();
+      const ctx = document.getElementById('resultChart').getContext('2d');
+      chartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Positive', 'Neutral', 'Negative'],
+          datasets: [{
+            data: [results.positive, results.neutral, results.negative],
+            backgroundColor: ['#22c55e', '#94a3b8', '#ef4444'],
+            borderWidth: 0,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { font: { size: 12 }, padding: 16 } }
+          }
+        }
+      });
+
+      // Detail bars
+      const detailHtml = results.details.map(d => {
+        const tp = pct(d.positive);
+        const tn = pct(d.negative);
+        return `
+          <div class="detail-bar">
+            <span class="lbl">${d.name}</span>
+            <div class="bar-wrap">
+              <div class="bar-fill" style="width:${tp}%;background:#22c55e;display:inline-block;"></div>
+              <div class="bar-fill" style="width:${100-tp-tn}%;background:#94a3b8;display:inline-block;"></div>
+              <div class="bar-fill" style="width:${tn}%;background:#ef4444;display:inline-block;"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      document.getElementById('detailBars').innerHTML = detailHtml;
+    }
+
+    function shareResult() {
+      const p = document.getElementById('rPositive').textContent;
+      const n = document.getElementById('rNegative').textContent;
+      const title = document.getElementById('resultTitle').textContent;
+      const text = `🔮 ${title}\n\nPositive: ${p} | Negative: ${n}\n\nPredict any scenario for free 👇\nhttps://predictor.vercel.app/`;
+
+      if (navigator.share) {
+        navigator.share({ title: 'My Prediction', text }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(text).then(() => {
+          alert('📋 Prediction copied! Share with friends.');
+        }).catch(() => {
+          window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(text), '_blank');
+        });
+      }
+      trackEvent('share_prediction', { tool: 'predictor', scenario: currentScenario });
+    }
+  </script>
+</body>
+</html>
