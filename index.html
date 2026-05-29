@@ -103,13 +103,24 @@
   <div class="container">
     <div class="header">
       <h1>🔮 Predictor</h1>
-      <p>AI-powered crowd simulation — predict any scenario</p>
+      <p>Describe any scenario — see how the crowd reacts</p>
     </div>
 
     <!-- Setup -->
     <div id="setupScreen">
+      <div class="card" style="background:#f5f3ff;border:2px solid #e9d5ff;">
+        <h2 style="color:#7c3aed;">🎯 How it works</h2>
+        <ol style="font-size:13px;color:#475569;line-height:1.8;padding-left:20px;">
+          <li><strong>Pick a scenario</strong> — Choose from the templates below</li>
+          <li><strong>Set the crowd size</strong> — How many virtual people to simulate</li>
+          <li><strong>Run the simulation</strong> — Our engine models each person's reaction</li>
+          <li><strong>Get the prediction</strong> — See charts, percentages, and breakdowns</li>
+        </ol>
+        <p style="font-size:11px;color:#94a3b8;margin-top:8px;">⚡ No AI required — everything runs in your browser instantly</p>
+      </div>
+
       <div class="card">
-        <h2>Choose a scenario</h2>
+        <h2>📋 Choose a scenario</h2>
         <div class="scenario-grid" id="scenarioGrid">
           <div class="scenario-btn active" data-scenario="product"><span class="icon">🚀</span>Product Launch</div>
           <div class="scenario-btn" data-scenario="price"><span class="icon">💰</span>Price Change</div>
@@ -123,18 +134,19 @@
       </div>
 
       <div class="card">
-        <h2>Simulation settings</h2>
+        <h2>⚙️ Settings</h2>
         <div class="slider-row" style="margin-bottom:10px;">
-          <label>Population</label>
+          <label>👥 Crowd size</label>
           <input type="range" id="popSlider" min="100" max="10000" value="1000" step="100">
           <span class="val" id="popVal">1,000</span>
         </div>
+        <div style="font-size:11px;color:#94a3b8;margin-top:-4px;margin-bottom:12px;">More people = more accurate prediction</div>
         <div class="slider-row">
-          <label>Optimism bias</label>
+          <label>😊 Mood bias</label>
           <input type="range" id="biasSlider" min="-50" max="50" value="0" step="5">
-          <span class="val" id="biasVal">0%</span>
+          <span class="val" id="biasVal">Neutral</span>
         </div>
-        <div style="font-size:11px;color:#94a3b8;margin-top:8px;">Positive = more optimistic outcomes. Negative = more pessimistic.</div>
+        <div style="font-size:11px;color:#94a3b8;margin-top:8px;">← Pessimistic · Neutral · Optimistic →</div>
       </div>
 
       <button class="btn btn-start" id="simBtn">▶ Run Simulation</button>
@@ -154,7 +166,8 @@
     <!-- Results -->
     <div id="resultScreen" class="hidden">
       <div class="card">
-        <h2 id="resultTitle">Prediction Results</h2>
+        <h2 id="resultTitle">📊 Prediction Results</h2>
+        <div style="font-size:12px;color:#64748b;margin-bottom:12px;" id="resultSummary"></div>
         <div class="result-grid">
           <div class="result-item"><div class="num positive" id="rPositive">0</div><div class="label">Positive</div></div>
           <div class="result-item"><div class="num neutral" id="rNeutral">0</div><div class="label">Neutral</div></div>
@@ -255,7 +268,10 @@
       document.getElementById('popVal').textContent = parseInt(this.value).toLocaleString();
     });
     document.getElementById('biasSlider').addEventListener('input', function() {
-      document.getElementById('biasVal').textContent = this.value + '%';
+      const v = parseInt(this.value);
+      const labels = ['Very Pessimistic', 'Pessimistic', 'Slightly Pessimistic', 'Neutral', 'Slightly Optimistic', 'Optimistic', 'Very Optimistic'];
+      const idx = Math.round((v + 50) / 100 * (labels.length - 1));
+      document.getElementById('biasVal').textContent = labels[Math.max(0, Math.min(labels.length-1, idx))];
     });
 
     // ─── Simulation Engine ─────────────────────────────────
@@ -350,7 +366,18 @@
     function showResults(results, scenario, pop) {
       const pct = (v) => Math.round((v / results.total) * 100);
 
-      document.getElementById('resultTitle').textContent = scenario.title + ' — Results';
+      document.getElementById('resultTitle').textContent = '📊 ' + scenario.title + ' — Results';
+      
+      // Generate human-readable summary
+      const pPct = pct(results.positive);
+      const nPct = pct(results.negative);
+      let verdict = '';
+      if (pPct > 60) verdict = '👍 The crowd is mostly positive!';
+      else if (pPct > 45) verdict = '🤔 Mixed reactions — slightly favorable.';
+      else if (nPct > 45) verdict = '👎 The crowd is mostly negative.';
+      else if (nPct > 30) verdict = '⚠️ More negative than positive.';
+      else verdict = '🔮 The crowd is divided.';
+      document.getElementById('resultSummary').textContent = verdict + ' Out of ' + results.total.toLocaleString() + ' simulated people.';
       document.getElementById('rPositive').textContent = pct(results.positive) + '%';
       document.getElementById('rNeutral').textContent = pct(results.neutral) + '%';
       document.getElementById('rNegative').textContent = pct(results.negative) + '%';
